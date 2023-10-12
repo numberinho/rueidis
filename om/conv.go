@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"time"
 	"unsafe"
 
 	"github.com/redis/rueidis"
@@ -21,7 +22,7 @@ func newHashConvFactory(t reflect.Type, schema schema) *hashConvFactory {
 		}
 		if !ok {
 			k := f.typ.Kind()
-			panic(fmt.Sprintf("schema %q should not contain unsupported field type %s.", t, k))
+			panic(fmt.Sprintf("schema %q should not contain unsupported field type %s to %s.", t, k, f.typ.Elem().Kind()))
 		}
 		factory.fields[name] = fieldConv{conv: conv, idx: f.idx}
 	}
@@ -83,6 +84,58 @@ var converters = struct {
 	slice map[reflect.Kind]converter
 }{
 	ptr: map[reflect.Kind]converter{
+		reflect.Struct: {
+			ValueToString: func(value reflect.Value) (string, bool) {
+				if value.IsNil() {
+					return "", false
+				}
+				if value.Elem().CanInterface() {
+					v, ok := value.Elem().Interface().(time.Time)
+					if ok {
+						return v.Format(time.RFC3339Nano), true
+					}
+				}
+				return "", false
+			},
+			StringToValue: func(value string) (reflect.Value, error) {
+				v, err := time.Parse(time.RFC3339Nano, value)
+				if err == nil {
+					return reflect.ValueOf(&v), nil
+				}
+				return reflect.Value{}, err
+			},
+		},
+		reflect.Float64: {
+			ValueToString: func(value reflect.Value) (string, bool) {
+				if value.IsNil() {
+					return "", false
+				}
+				return fmt.Sprint(value.Elem().Float()), true
+			},
+			StringToValue: func(value string) (reflect.Value, error) {
+				v, err := strconv.ParseFloat(value, 64)
+				if err != nil {
+					return reflect.Value{}, err
+				}
+				return reflect.ValueOf(&v), nil
+			},
+		},
+		reflect.Int: {
+			ValueToString: func(value reflect.Value) (string, bool) {
+				if value.IsNil() {
+					return "", false
+				}
+				return strconv.FormatInt(value.Elem().Int(), 10), true
+			},
+			StringToValue: func(value string) (reflect.Value, error) {
+				v, err := strconv.ParseInt(value, 10, 0)
+				i := int(v)
+				if err != nil {
+					return reflect.Value{}, err
+				}
+				return reflect.ValueOf(&i), nil
+			},
+		},
 		reflect.Int64: {
 			ValueToString: func(value reflect.Value) (string, bool) {
 				if value.IsNil() {
@@ -126,6 +179,49 @@ var converters = struct {
 		},
 	},
 	val: map[reflect.Kind]converter{
+		reflect.Struct: {
+			ValueToString: func(value reflect.Value) (string, bool) {
+				if value.CanInterface() {
+					v, ok := value.Interface().(time.Time)
+					if ok {
+						return v.Format(time.RFC3339Nano), true
+					}
+				}
+				return "", false
+			},
+			StringToValue: func(value string) (reflect.Value, error) {
+				v, err := time.Parse(time.RFC3339Nano, value)
+				if err == nil {
+					return reflect.ValueOf(v), nil
+				}
+				return reflect.Value{}, err
+			},
+		},
+		reflect.Float64: {
+			ValueToString: func(value reflect.Value) (string, bool) {
+				return fmt.Sprint(value.Elem().Float()), true
+			},
+			StringToValue: func(value string) (reflect.Value, error) {
+				v, err := strconv.ParseFloat(value, 64)
+				if err != nil {
+					return reflect.Value{}, err
+				}
+				return reflect.ValueOf(v), nil
+			},
+		},
+		reflect.Int: {
+			ValueToString: func(value reflect.Value) (string, bool) {
+				return strconv.FormatInt(value.Int(), 10), true
+			},
+			StringToValue: func(value string) (reflect.Value, error) {
+				v, err := strconv.ParseInt(value, 10, 0)
+				i := int(v)
+				if err != nil {
+					return reflect.Value{}, err
+				}
+				return reflect.ValueOf(i), nil
+			},
+		},
 		reflect.Int64: {
 			ValueToString: func(value reflect.Value) (string, bool) {
 				return strconv.FormatInt(value.Int(), 10), true
