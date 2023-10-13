@@ -434,13 +434,13 @@ func (c *Compat) CommandList(ctx context.Context, filter FilterBy) *StringSliceC
 }
 
 func (c *Compat) CommandGetKeys(ctx context.Context, commands ...any) *StringSliceCmd {
-	cmd := c.client.B().CommandGetkeys().Command(commands[0].(string)).Arg(argsToSlice(commands[1:])...).Build()
+	cmd := c.client.B().CommandGetkeys().Command(commands[0].(string)).Arg(ArgsToSlice(commands[1:])...).Build()
 	resp := c.client.Do(ctx, cmd)
 	return newStringSliceCmd(resp)
 }
 
 func (c *Compat) CommandGetKeysAndFlags(ctx context.Context, commands ...any) *KeyFlagsCmd {
-	cmd := c.client.B().CommandGetkeysandflags().Command(commands[0].(string)).Arg(argsToSlice(commands[1:])...).Build()
+	cmd := c.client.B().CommandGetkeysandflags().Command(commands[0].(string)).Arg(ArgsToSlice(commands[1:])...).Build()
 	resp := c.client.Do(ctx, cmd)
 	return newKeyFlagsCmd(resp)
 }
@@ -786,7 +786,7 @@ func (c *Compat) MGet(ctx context.Context, keys ...string) *SliceCmd {
 func (c *Compat) MSet(ctx context.Context, values ...any) *StatusCmd {
 	partial := c.client.B().Mset().KeyValue()
 
-	args := argsToSlice(values)
+	args := ArgsToSlice(values)
 	for i := 0; i < len(args); i += 2 {
 		partial = partial.KeyValue(args[i], args[i+1])
 	}
@@ -799,7 +799,7 @@ func (c *Compat) MSet(ctx context.Context, values ...any) *StatusCmd {
 func (c *Compat) MSetNX(ctx context.Context, values ...any) *BoolCmd {
 	partial := c.client.B().Msetnx().KeyValue()
 
-	args := argsToSlice(values)
+	args := ArgsToSlice(values)
 	for i := 0; i < len(args); i += 2 {
 		partial = partial.KeyValue(args[i], args[i+1])
 	}
@@ -1122,7 +1122,7 @@ func (c *Compat) HMGet(ctx context.Context, key string, fields ...string) *Slice
 func (c *Compat) HSet(ctx context.Context, key string, values ...any) *IntCmd {
 	partial := c.client.B().Hset().Key(key).FieldValue()
 
-	args := argsToSlice(values)
+	args := ArgsToSlice(values)
 	for i := 0; i < len(args); i += 2 {
 		partial = partial.FieldValue(args[i], args[i+1])
 	}
@@ -1136,7 +1136,7 @@ func (c *Compat) HSet(ctx context.Context, key string, values ...any) *IntCmd {
 func (c *Compat) HMSet(ctx context.Context, key string, values ...any) *BoolCmd {
 	partial := c.client.B().Hset().Key(key).FieldValue()
 
-	args := argsToSlice(values)
+	args := ArgsToSlice(values)
 	for i := 0; i < len(args); i += 2 {
 		partial = partial.FieldValue(args[i], args[i+1])
 	}
@@ -1276,13 +1276,13 @@ func (c *Compat) LPosCount(ctx context.Context, key string, element string, coun
 }
 
 func (c *Compat) LPush(ctx context.Context, key string, elements ...any) *IntCmd {
-	cmd := c.client.B().Lpush().Key(key).Element(argsToSlice(elements)...).Build()
+	cmd := c.client.B().Lpush().Key(key).Element(ArgsToSlice(elements)...).Build()
 	resp := c.client.Do(ctx, cmd)
 	return newIntCmd(resp)
 }
 
 func (c *Compat) LPushX(ctx context.Context, key string, elements ...any) *IntCmd {
-	cmd := c.client.B().Lpushx().Key(key).Element(argsToSlice(elements)...).Build()
+	cmd := c.client.B().Lpushx().Key(key).Element(ArgsToSlice(elements)...).Build()
 	resp := c.client.Do(ctx, cmd)
 	return newIntCmd(resp)
 }
@@ -1330,13 +1330,13 @@ func (c *Compat) RPopLPush(ctx context.Context, source, destination string) *Str
 }
 
 func (c *Compat) RPush(ctx context.Context, key string, elements ...any) *IntCmd {
-	cmd := c.client.B().Rpush().Key(key).Element(argsToSlice(elements)...).Build()
+	cmd := c.client.B().Rpush().Key(key).Element(ArgsToSlice(elements)...).Build()
 	resp := c.client.Do(ctx, cmd)
 	return newIntCmd(resp)
 }
 
 func (c *Compat) RPushX(ctx context.Context, key string, elements ...any) *IntCmd {
-	cmd := c.client.B().Rpushx().Key(key).Element(argsToSlice(elements)...).Build()
+	cmd := c.client.B().Rpushx().Key(key).Element(ArgsToSlice(elements)...).Build()
 	resp := c.client.Do(ctx, cmd)
 	return newIntCmd(resp)
 }
@@ -1353,7 +1353,7 @@ func (c *Compat) BLMove(ctx context.Context, source, destination, srcpos, destpo
 
 func (c *Compat) SAdd(ctx context.Context, key string, members ...any) *IntCmd {
 	cmd := c.client.B().Sadd().Key(key).Member()
-	for _, m := range argsToSlice(members) {
+	for _, m := range ArgsToSlice(members) {
 		cmd = cmd.Member(str(m))
 	}
 	resp := c.client.Do(ctx, cmd.Build())
@@ -1401,7 +1401,7 @@ func (c *Compat) SIsMember(ctx context.Context, key string, member any) *BoolCmd
 }
 
 func (c *Compat) SMIsMember(ctx context.Context, key string, members ...any) *BoolSliceCmd {
-	cmd := c.client.B().Smismember().Key(key).Member(argsToSlice(members)...).Build()
+	cmd := c.client.B().Smismember().Key(key).Member(ArgsToSlice(members)...).Build()
 	resp := c.client.Do(ctx, cmd)
 	return newBoolSliceCmd(resp)
 }
@@ -1449,7 +1449,7 @@ func (c *Compat) SRandMemberN(ctx context.Context, key string, count int64) *Str
 }
 
 func (c *Compat) SRem(ctx context.Context, key string, members ...any) *IntCmd {
-	cmd := c.client.B().Srem().Key(key).Member(argsToSlice(members)...).Build()
+	cmd := c.client.B().Srem().Key(key).Member(ArgsToSlice(members)...).Build()
 	resp := c.client.Do(ctx, cmd)
 	return newIntCmd(resp)
 }
@@ -1493,7 +1493,7 @@ func (c *Compat) XAdd(ctx context.Context, a XAddArgs) *StringCmd {
 	} else {
 		cmd = cmd.Args("*")
 	}
-	cmd = cmd.Args(argToSlice(a.Values)...)
+	cmd = cmd.Args(ArgToSlice(a.Values)...)
 	resp := c.client.Do(ctx, cmd.Build())
 	return newStringCmd(resp)
 }
@@ -2048,7 +2048,7 @@ func (c *Compat) ZRankWithScore(ctx context.Context, key, member string) *RankWi
 }
 
 func (c *Compat) ZRem(ctx context.Context, key string, members ...any) *IntCmd {
-	cmd := c.client.B().Zrem().Key(key).Member(argsToSlice(members)...).Build()
+	cmd := c.client.B().Zrem().Key(key).Member(ArgsToSlice(members)...).Build()
 	resp := c.client.Do(ctx, cmd)
 	return newIntCmd(resp)
 }
@@ -2169,7 +2169,7 @@ func (c *Compat) ZDiffStore(ctx context.Context, destination string, keys ...str
 }
 
 func (c *Compat) PFAdd(ctx context.Context, key string, els ...any) *IntCmd {
-	cmd := c.client.B().Pfadd().Key(key).Element(argsToSlice(els)...).Build()
+	cmd := c.client.B().Pfadd().Key(key).Element(ArgsToSlice(els)...).Build()
 	resp := c.client.Do(ctx, cmd)
 	return newIntCmd(resp)
 }
@@ -2386,22 +2386,22 @@ func (c *Compat) MemoryUsage(ctx context.Context, key string, samples ...int64) 
 }
 
 func (c *Compat) Eval(ctx context.Context, script string, keys []string, args ...any) *Cmd {
-	cmd := c.client.B().Eval().Script(script).Numkeys(int64(len(keys))).Key(keys...).Arg(argsToSlice(args)...).Build()
+	cmd := c.client.B().Eval().Script(script).Numkeys(int64(len(keys))).Key(keys...).Arg(ArgsToSlice(args)...).Build()
 	return newCmd(c.client.Do(ctx, cmd))
 }
 
 func (c *Compat) EvalSha(ctx context.Context, sha1 string, keys []string, args ...any) *Cmd {
-	cmd := c.client.B().Evalsha().Sha1(sha1).Numkeys(int64(len(keys))).Key(keys...).Arg(argsToSlice(args)...).Build()
+	cmd := c.client.B().Evalsha().Sha1(sha1).Numkeys(int64(len(keys))).Key(keys...).Arg(ArgsToSlice(args)...).Build()
 	return newCmd(c.client.Do(ctx, cmd))
 }
 
 func (c *Compat) EvalRO(ctx context.Context, script string, keys []string, args ...any) *Cmd {
-	cmd := c.client.B().EvalRo().Script(script).Numkeys(int64(len(keys))).Key(keys...).Arg(argsToSlice(args)...).Build()
+	cmd := c.client.B().EvalRo().Script(script).Numkeys(int64(len(keys))).Key(keys...).Arg(ArgsToSlice(args)...).Build()
 	return newCmd(c.client.Do(ctx, cmd))
 }
 
 func (c *Compat) EvalShaRO(ctx context.Context, sha1 string, keys []string, args ...any) *Cmd {
-	cmd := c.client.B().EvalshaRo().Sha1(sha1).Numkeys(int64(len(keys))).Key(keys...).Arg(argsToSlice(args)...).Build()
+	cmd := c.client.B().EvalshaRo().Sha1(sha1).Numkeys(int64(len(keys))).Key(keys...).Arg(ArgsToSlice(args)...).Build()
 	return newCmd(c.client.Do(ctx, cmd))
 }
 
@@ -2503,12 +2503,12 @@ func (c *Compat) FunctionRestore(ctx context.Context, libDump string) *StringCmd
 }
 
 func (c *Compat) FCall(ctx context.Context, function string, keys []string, args ...any) *Cmd {
-	cmd := c.client.B().Fcall().Function(function).Numkeys(int64(len(keys))).Key(keys...).Arg(argsToSlice(args)...).Build()
+	cmd := c.client.B().Fcall().Function(function).Numkeys(int64(len(keys))).Key(keys...).Arg(ArgsToSlice(args)...).Build()
 	return newCmd(c.client.Do(ctx, cmd))
 }
 
 func (c *Compat) FCallRO(ctx context.Context, function string, keys []string, args ...any) *Cmd {
-	cmd := c.client.B().FcallRo().Function(function).Numkeys(int64(len(keys))).Key(keys...).Arg(argsToSlice(args)...).Build()
+	cmd := c.client.B().FcallRo().Function(function).Numkeys(int64(len(keys))).Key(keys...).Arg(ArgsToSlice(args)...).Build()
 	return newCmd(c.client.Do(ctx, cmd))
 }
 
@@ -2801,7 +2801,7 @@ func (c *Compat) GeoHash(ctx context.Context, key string, members ...string) *St
 }
 
 func (c *Compat) ACLDryRun(ctx context.Context, username string, command ...any) *StringCmd {
-	cmd := c.client.B().AclDryrun().Username(username).Command(command[0].(string)).Arg(argsToSlice(command[1:])...).Build()
+	cmd := c.client.B().AclDryrun().Username(username).Command(command[0].(string)).Arg(ArgsToSlice(command[1:])...).Build()
 	resp := c.client.Do(ctx, cmd)
 	return newStringCmd(resp)
 }
@@ -2891,17 +2891,17 @@ func (c CacheCompat) BitPosSpan(ctx context.Context, key string, bit, start, end
 }
 
 func (c CacheCompat) EvalRO(ctx context.Context, script string, keys []string, args ...any) *Cmd {
-	cmd := c.client.B().EvalRo().Script(script).Numkeys(int64(len(keys))).Key(keys...).Arg(argsToSlice(args)...).Cache()
+	cmd := c.client.B().EvalRo().Script(script).Numkeys(int64(len(keys))).Key(keys...).Arg(ArgsToSlice(args)...).Cache()
 	return newCmd(c.client.DoCache(ctx, cmd, c.ttl))
 }
 
 func (c CacheCompat) EvalShaRO(ctx context.Context, sha1 string, keys []string, args ...any) *Cmd {
-	cmd := c.client.B().EvalshaRo().Sha1(sha1).Numkeys(int64(len(keys))).Key(keys...).Arg(argsToSlice(args)...).Cache()
+	cmd := c.client.B().EvalshaRo().Sha1(sha1).Numkeys(int64(len(keys))).Key(keys...).Arg(ArgsToSlice(args)...).Cache()
 	return newCmd(c.client.DoCache(ctx, cmd, c.ttl))
 }
 
 func (c CacheCompat) FCallRO(ctx context.Context, function string, keys []string, args ...any) *Cmd {
-	cmd := c.client.B().FcallRo().Function(function).Numkeys(int64(len(keys))).Key(keys...).Arg(argsToSlice(args)...).Cache()
+	cmd := c.client.B().FcallRo().Function(function).Numkeys(int64(len(keys))).Key(keys...).Arg(ArgsToSlice(args)...).Cache()
 	return newCmd(c.client.DoCache(ctx, cmd, c.ttl))
 }
 
@@ -3072,7 +3072,7 @@ func (c CacheCompat) SIsMember(ctx context.Context, key string, member any) *Boo
 }
 
 func (c CacheCompat) SMIsMember(ctx context.Context, key string, members ...any) *BoolSliceCmd {
-	cmd := c.client.B().Smismember().Key(key).Member(argsToSlice(members)...).Cache()
+	cmd := c.client.B().Smismember().Key(key).Member(ArgsToSlice(members)...).Cache()
 	resp := c.client.DoCache(ctx, cmd, c.ttl)
 	return newBoolSliceCmd(resp)
 }
@@ -3324,9 +3324,9 @@ func str(arg any) string {
 	return fmt.Sprint(arg)
 }
 
-func argsToSlice(src []any) []string {
+func ArgsToSlice(src []any) []string {
 	if len(src) == 1 {
-		return argToSlice(src[0])
+		return ArgToSlice(src[0])
 	}
 	dst := make([]string, 0, len(src))
 	for _, v := range src {
@@ -3335,7 +3335,7 @@ func argsToSlice(src []any) []string {
 	return dst
 }
 
-func argToSlice(arg any) []string {
+func ArgToSlice(arg any) []string {
 	switch arg := arg.(type) {
 	case []string:
 		return arg
